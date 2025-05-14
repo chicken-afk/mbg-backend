@@ -1,4 +1,4 @@
-version: '3.8'
+version: '2.2'
 
 services:
   app:
@@ -10,20 +10,14 @@ services:
       - "8000:8000"
     volumes:
       - .:/var/www
+      - ./.env:/var/www/.env  # penting agar .env selalu sinkron
     environment:
-      - APP_ENV=local
-      - APP_DEBUG=true
-    depends_on:
-      - mysql
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_HOST: 103.189.234.173
+      DB_PORT: 3306
+      DB_DATABASE: mbg_ubed
+      DB_USERNAME: ubed_user
+      DB_PASSWORD: duatigaJanuary2023
 
-  mysql:
-    image: mysql:8
-    container_name: mysql_octane
-    ports:
-      - "3306:3306"
-    environment: MYSQL_DATABASE=mbg_12903 MYSQL_USER=root MYSQL_PASSWORD=dua3January20duatiga MYSQL_ROOT_PASSWORD=root
-    volumes:
-      - mysql_data:/var/lib/mysql
 
-volumes:
-  mysql_data:
