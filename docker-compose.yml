@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel_octane
+    container_name: laravel_octane_backend
     ports:
       - "8000:8000"
     volumes:
