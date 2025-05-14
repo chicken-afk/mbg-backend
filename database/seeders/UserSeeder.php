@@ -13,6 +13,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Create a user with the default password
+        if (\App\Models\User::where('email', 'admin@gmail.com')->exists()) {
+            return; // User already exists, no need to create again
+        }
         \App\Models\User::create([
             'name' => 'Admin',
             'email' => 'admin@gmail.com',
