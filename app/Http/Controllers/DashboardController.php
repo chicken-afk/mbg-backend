@@ -18,7 +18,7 @@ class DashboardController extends Controller
             ->join('users', 'transactions.user_id', '=', 'users.id')
             ->selectRaw('transactions.user_id, users.name, SUM(transactions.amount) as total_spent')
             ->groupBy('transactions.user_id', 'users.name')
-            ->orderBy('total_spent', 'desc')
+            ->orderBy('total_spent', 'asc')
             ->get();
         // Prepare the dashboard data
         $dashboardData = [

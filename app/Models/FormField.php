@@ -18,15 +18,26 @@ class FormField extends Model
     ];
 
     protected $casts = [
-        'options' => 'array',
         'required' => 'boolean',
+        // 'options' => 'array',
     ];
     protected $attributes = [
-        'options' => '[]',
         'required' => false,
     ];
+
     public function getOptionsAttribute($value)
     {
+        if (is_string($value) && strlen($value) > 1 && $value[0] === '"' && substr($value, -1) === '"') {
+            $value = substr($value, 1, -1);
+        }
+        // if (is_null($value)) {
+        //     return [];
+        // }
         return json_decode($value, true);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', true);
     }
 }

@@ -34,4 +34,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/users/{id}', [\App\Http\Controllers\UserController::class, 'show']);
     Route::put('/users/{id}', [\App\Http\Controllers\UserController::class, 'update']);
     Route::delete('/users/{id}', [\App\Http\Controllers\UserController::class, 'destroy']);
+
+    /**Form fields dinamis */
+    Route::post('/form-fields', [\App\Http\Controllers\FormFieldController::class, 'store']);
+    Route::put('/form-fields/{id}', [\App\Http\Controllers\FormFieldController::class, 'update']);
+    Route::delete('/form-fields/{id}', [\App\Http\Controllers\FormFieldController::class, 'destroy']);
 });
+Route::get('/form-fields', [\App\Http\Controllers\FormFieldController::class, 'index']);

@@ -14,57 +14,18 @@ class FormSeeder extends Seeder
     {
         $defaultFields = [
             [
-                'id' => 1,
-                'name' => 'date',
-                'label' => 'Tanggal',
-                'type' => 'date',
-                'required' => true,
-            ],
-            [
-                'id' => 2,
-                'name' => 'description',
-                'label' => 'Deskripsi',
-                'type' => 'text',
-                'required' => true,
-            ],
-            [
-                'id' => 3,
-                'name' => 'Jumlah',
-                'label' => 'Jumlah (Rp.)',
-                'type' => 'number',
-                'required' => true,
-            ],
-            [
-                'id' => 4,
                 'name' => 'category',
                 'label' => 'Kategori',
                 'type' => 'select',
-                'options' => ['Pemasukan', 'Pengeluaran'],
+                'options' => ['Makanan', 'Transportasi', 'Kesehatan', 'Pendidikan'],
                 'required' => true,
-            ],
-            [
-                'id' => 5,
-                'name' => 'status',
-                'label' => 'Status',
-                'type' => 'select',
-                'options' => ['Selesai'],
-                'required' => true,
-            ],
-            [
-                'id' => 6,
-                'name' => 'paymentMethod',
-                'label' => 'Metode Pembayaran',
-                'type' => 'select',
-                'options' => ['Cash', 'Transfer Bank'],
-                'required' => true,
-            ],
+            ]
         ];
         if (\App\Models\FormField::count() > 0) {
             return; // Default form fields already exist, no need to create again
         }
         foreach ($defaultFields as $field) {
-            \App\Models\FormField::updateOrCreate(
-                ['id' => $field['id']],
+            \App\Models\FormField::create(
                 [
                     'name' => $field['name'],
                     'label' => $field['label'],

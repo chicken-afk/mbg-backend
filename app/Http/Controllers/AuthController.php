@@ -32,14 +32,17 @@ class AuthController extends Controller
         User::where("id", auth()->user()->id)->update([
             "last_login_at" => now()
         ]);
+        $user = User::where("email", $request->email)->first();
         $output = [
             'status' => 'success',
             'message' => 'Login successful',
             'data' => [
                 'token' => $token,
                 'user' => [
-                    'name' => auth()->user()->name,
-                    'email' => auth()->user()->email,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'last_login_at' => $user->last_login_at,
                 ],
             ],
         ];
