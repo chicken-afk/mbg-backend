@@ -10,14 +10,6 @@ services:
       - "8000:8000"
     volumes:
       - .:/var/www
-      - ./.env:/var/www/.env  # penting agar .env selalu sinkron
-    environment:
-      APP_ENV: production
-      APP_DEBUG: "false"
-      DB_HOST: 103.189.234.173
-      DB_PORT: 3306
-      DB_DATABASE: mbg_ubed
-      DB_USERNAME: ubed_user
-      DB_PASSWORD: duatigaJanuary2023
-
-
+      - ./.env:/var/www/.env # mount file .env ke dalam container
+    env_file:
+      - .env # ini otomatis inject semua variabel dari .env
