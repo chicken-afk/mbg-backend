@@ -20,12 +20,19 @@ class DashboardController extends Controller
             ->groupBy('transactions.user_id', 'users.name')
             ->orderBy('total_spent', 'asc')
             ->get();
+        $totalIncomeByUser = Transaction::where('type', 'pemasukan')
+            ->join('users', 'transactions.user_id', '=', 'users.id')
+            ->selectRaw('transactions.user_id, users.name, SUM(transactions.amount) as total_income')
+            ->groupBy('transactions.user_id', 'users.name')
+            ->orderBy('total_income', 'desc')
+            ->get();
         // Prepare the dashboard data
         $dashboardData = [
             'total_income' => $totalIncome,
             'total_expense' => $totalExpense,
             'saldo' => $saldo,
             'total_spent_by_user' => $totalSpent,
+            'total_income_by_user' => $totalIncomeByUser,
             'recent_transactions' => Transaction::with('user')
                 ->orderBy('created_at', 'desc')
                 ->take(5)

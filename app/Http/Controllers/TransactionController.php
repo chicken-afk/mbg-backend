@@ -94,10 +94,21 @@ class TransactionController extends Controller
         return response()->json($transaction);
     }
 
-    public function destroy(Transaction $transaction)
+    public function destroy(int $id)
     {
-        $transaction->delete();
-        return response()->json(null, 204);
+        $transaction = Transaction::where('id', $id)->first();
+        if (!$transaction) {
+            return response()->json(['message' => 'Transaction not found'], 422);
+        }
+        $transaction->deleted_at = now();
+        $transaction->deleted_by = auth()->user()->id;
+        $transaction->deleted_reason = request()->input('reason') ?? null;
+        $transaction->save();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Transaction deleted successfully',
+            'data' => $transaction,
+        ])->setStatusCode(200, 'Transaction deleted successfully');
     }
 
     public function exportPdf(Request $request)
@@ -116,10 +127,40 @@ class TransactionController extends Controller
         $transactions = $query->orderBy('transactions.id', "desc")->get();
         $start_date = ($request->has('start_date') && $request->start_date !== null && $request->start_date !== 'null') ? date('d-m-Y', strtotime($request->input('start_date'))) : null;
         $end_date = ($request->has('end_date') && $request->end_date !== null && $request->end_date !== 'null') ? date('d-m-Y', strtotime($request->input('end_date'))) : null;
+
+        // Get Total Expence By User Group By User
+        $totalSpent = Transaction::where('type', 'pengeluaran')
+            ->join('users', 'transactions.user_id', '=', 'users.id')
+            ->when($request->has('start_date') && $request->start_date !== null && $request->start_date !== 'null', function ($query) use ($request) {
+                $query->whereDate('transaction_at', '>=', $request->input('start_date'));
+            })
+            ->when($request->has('end_date') && $request->end_date !== null && $request->end_date !== 'null', function ($query) use ($request) {
+                $query->whereDate('transaction_at', '<=', $request->input('end_date'));
+            })
+            ->selectRaw('transactions.user_id, users.name, SUM(transactions.amount) as total_spent')
+            ->groupBy('transactions.user_id', 'users.name')
+            ->orderBy('total_spent', 'asc')
+            ->get();
+
+        $totalIncomeByUser = Transaction::where('type', 'pemasukan')
+            ->join('users', 'transactions.user_id', '=', 'users.id')
+            ->when($request->has('start_date') && $request->start_date !== null && $request->start_date !== 'null', function ($query) use ($request) {
+                $query->whereDate('transaction_at', '>=', $request->input('start_date'));
+            })
+            ->when($request->has('end_date') && $request->end_date !== null && $request->end_date !== 'null', function ($query) use ($request) {
+                $query->whereDate('transaction_at', '<=', $request->input('end_date'));
+            })
+            ->selectRaw('transactions.user_id, users.name, SUM(transactions.amount) as total_income')
+            ->groupBy('transactions.user_id', 'users.name')
+            ->orderBy('total_income', 'desc')
+            ->get();
+
         $pdf = \PDF::loadView('transactions.export', compact(
             'transactions',
             'start_date',
             'end_date',
+            'totalSpent',
+            'totalIncomeByUser'
         ));
         return $pdf->download('transactions.pdf');
     }

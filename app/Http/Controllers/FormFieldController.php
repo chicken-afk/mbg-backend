@@ -53,7 +53,13 @@ class FormFieldController extends Controller
         $validatedData['required'] = $validatedData['required'] ?? false; // Default to false if not provided
         $validatedData['label'] = $validatedData['label'] ?? $validatedData['name']; // Default label to name if not provided
         $validatedData['name'] = strtolower(str_replace(' ', '_', $validatedData['name'])); // Convert name to lowercase and replace spaces with underscores
-        $formField = FormField::create($validatedData);
+
+        if ($request->has("id") && $request->input("id") != null) {
+            $formField = FormField::findOrFail($request->input("id"));
+            $formField->update($validatedData);
+        } else {
+            $formField = FormField::create($validatedData);
+        }
 
         return response()->json($formField, 201);
     }

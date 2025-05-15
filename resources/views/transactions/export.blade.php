@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <h3>Data Transaksi</h3>
+    <h3 style="text-align: center;">Data Transaksi</h3>
     <p style="margin-bottom: 3px;margin-top:0px;">Periode: {{ $start_date }} s/d {{ $end_date }}</p>
     <p style="margin-bottom: 3px;margin-top:0px;">Jumlah Transaksi: {{ $transactions->count() }}</p>
     <p style="margin-bottom: 3px;margin-top:0px;">Saldo: Rp.
@@ -17,6 +17,50 @@
         {{ number_format($transactions->where('type', 'pemasukan')->sum('amount'), 0) }}</p>
     <p style="margin-bottom: 3px;margin-top:0px;">Jumlah Transaksi Keluar: Rp.
         {{ number_format($transactions->where('type', 'pengeluaran')->sum('amount'), 0) }}</p>
+
+    {{--  --}}
+
+    <h4 style="text-align: center">Pengeluaran Berdasarkan Pengguna</h4>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Jumlah</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($totalSpent as $userTransactions)
+                <tr>
+                    <td>{{ $userTransactions->name }}</td>
+                    <td>Rp. {{ number_format($userTransactions->total_spent, 0) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+
+    </table>
+    <br>
+
+    <h4 style="text-align: center">Pemasukan Berdasarkan Pengguna</h4>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Jumlah</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($totalIncomeByUser as $userTransactions)
+                <tr>
+                    <td>{{ $userTransactions->name }}</td>
+                    <td>Rp. {{ number_format($userTransactions->total_income, 0) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+
+    </table>
+    <br>
+
+    <h4 style="text-align: center">List Transaksi</h4>
     <table border="1" cellpadding="5" cellspacing="0">
         <thead>
             <tr>
