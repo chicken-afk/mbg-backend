@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use App\Models\FormField;
 
@@ -30,6 +31,12 @@ class FormFieldController extends Controller
             $formFields = $formFields->where('status', $request->input('status'));
         }
 
+        $clientId = auth()->user()->role === RoleEnum::SUPERADMIN->value ? $request->input('warehouse_id') : auth()->user()->warehouse_id;
+
+        if ($clientId) {
+            $formFields = $formFields->where('warehouse_id', $clientId);
+        }
+
         $formFields = $formFields->get();
 
         return response()->json($formFields);
@@ -44,15 +51,19 @@ class FormFieldController extends Controller
             'options' => 'nullable|array',
             'required' => 'boolean',
             'show_in_table' => 'boolean',
+            "warehouse_id" => 'nullable|exists:warehouses,id,deleted_at,NULL',
+            "label" => 'required|string|max:255',
         ]);
+
+        $clientId = auth()->user()->role === RoleEnum::SUPERADMIN->value ? $validatedData['warehouse_id'] : auth()->user()->warehouse_id;
 
         // Create a new form field
         $validatedData['options'] = $request->has('options') ? json_encode($validatedData['options']) : null;
-        $validatedData['status'] = true; // Assuming you want to set the status to true by default
+        $validatedData['status'] = $validatedData['status'] ?? true; // Default to true if not provided
         $validatedData['show_in_table'] = $validatedData['show_in_table'] ?? false; // Default to false if not provided
-        $validatedData['required'] = $validatedData['required'] ?? false; // Default to false if not provided
-        $validatedData['label'] = $validatedData['label'] ?? $validatedData['name']; // Default label to name if not provided
+        $validatedData['required'] = $validatedData['required'] ?? false; // Dult label to name if not provided
         $validatedData['name'] = strtolower(str_replace(' ', '_', $validatedData['name'])); // Convert name to lowercase and replace spaces with underscores
+        $validatedData['warehouse_id'] = $clientId; // Set the warehouse_id based on the user's role
 
         if ($request->has("id") && $request->input("id") != null) {
             $formField = FormField::findOrFail($request->input("id"));

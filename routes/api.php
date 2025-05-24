@@ -39,5 +39,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/form-fields', [\App\Http\Controllers\FormFieldController::class, 'store']);
     Route::put('/form-fields/{id}', [\App\Http\Controllers\FormFieldController::class, 'update']);
     Route::delete('/form-fields/{id}', [\App\Http\Controllers\FormFieldController::class, 'destroy']);
+
+    /**Warehouses */
+    Route::get('/warehouses', [\App\Http\Controllers\WarehouseController::class, 'index']);
+    Route::post('/warehouses', [\App\Http\Controllers\WarehouseController::class, 'store']);
+    Route::get('/warehouses/{id}', [\App\Http\Controllers\WarehouseController::class, 'show']);
+    Route::put('/warehouses/{id}', [\App\Http\Controllers\WarehouseController::class, 'update']);
+    Route::delete('/warehouses/{id}', [\App\Http\Controllers\WarehouseController::class, 'destroy']);
+
+    /**Dynamic form */
+    Route::get('/form-fields', [\App\Http\Controllers\FormFieldController::class, 'index']);
 });
-Route::get('/form-fields', [\App\Http\Controllers\FormFieldController::class, 'index']);

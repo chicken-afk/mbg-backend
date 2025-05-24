@@ -32,6 +32,12 @@ class TransactionController extends Controller
         if ($date = $request->input('transaction_at')) {
             $transactions->whereDate('transaction_at', $date);
         }
+
+        $clientId = auth()->user()->role === 'superadmin' ? $request->input('warehouse_id') ?? null : auth()->user()->warehouse_id;
+        if ($clientId) {
+            $transactions->where('warehouse_id', $clientId);
+        }
+
         $transactions = $transactions->orderBy('created_at', 'desc')->paginate(10);
         // $resData = $transactions->get();
         $output = [
@@ -45,26 +51,80 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'date' => 'required|date',
             'amount' => 'required|integer',
             'category' => 'required|in:Pemasukan,Pengeluaran',
             'description' => 'nullable|string',
             'paymentMethod' => 'required|string',
+        ], [
+            'amount.required' => 'Jumlah wajib diisi.',
+            'amount.integer' => 'Jumlah harus berupa angka.',
+            'category.required' => 'Kategori wajib diisi.',
+            'category.in' => 'Kategori harus Pemasukan atau Pengeluaran.',
+            'paymentMethod.required' => 'Metode pembayaran wajib diisi.',
+            'paymentMethod.string' => 'Metode pembayaran harus berupa teks.',
         ]);
+        $validated['amount'] = $validated['amount'] < 0 ? $validated['amount'] * -1 : $validated['amount'];
         $additionalData = null;
         if ($request->has("customFields")) {
             $additionalData = json_encode($request->input("customFields"));
         }
-        $transaction = Transaction::create([
-            'uuid' => \Str::uuid(),
-            'user_id' => auth()->id(),
-            'status' => 'selesai',
-            'amount' => $validated['amount'],
-            'type' => strtolower($validated['category']),
-            'description' => $validated['description'] ?? null,
-            'payment_method' => $validated['paymentMethod'] ?? null,
-            'transaction_at' => $request->input('transaction_at') ?? now(),
-            'additional_data' => $additionalData,
-        ])->load('user');
+        $clientId = auth()->user()->role === 'superadmin' ? $request->input('warehouse_id') ?? null : auth()->user()->warehouse_id;
+        $base64File = $request->has('invoiceFileBase64') ? $request->invoiceFileBase64  : null;
+        $validated['invoice_file_path'] = null;
+        if ($base64File) {
+            // Extract MIME type and actual base64 content
+            [$typeInfo, $base64Content] = explode(';', $base64File);
+            [$meta, $mimeType] = explode(':', $typeInfo);
+            $extension = explode('/', $mimeType)[1];
+
+            // Decode the base64 content
+            $base64Content = explode(',', $base64File)[1];
+            $decodedFile = base64_decode($base64Content);
+
+            // Optionally validate base64 decode
+            if ($decodedFile === false) {
+                throw new \Exception("Invalid base64 file");
+            }
+
+            // Save the file
+            $fileName = $clientId . "/" . time() . '.' . $extension;
+            \Storage::disk('public')->put($fileName, $decodedFile);
+
+            // Set validated fields
+            $validated['invoice_file'] = $fileName;
+            $validated['invoice_file_path'] = env("APP_URL") . \Storage::url($fileName);
+        }
+
+        if ($request->has("id") && $request->input("id") != null) {
+            $transaction = Transaction::where("uuid", $request->input("id"))->first();
+            $transaction->update([
+                'user_id' => auth()->id(),
+                'status' => 'selesai',
+                'amount' => $validated['amount'],
+                'type' => strtolower($validated['category']),
+                'description' => $validated['description'] ?? null,
+                'payment_method' => $validated['paymentMethod'] ?? null,
+                'transaction_at' => $request->input('date') ?? now(),
+                'additional_data' => $additionalData,
+                "invoice_file" => $validated['invoice_file_path'] ?? $transaction->invoice_file,
+            ]);
+        } else {
+            $transaction = Transaction::create([
+                'uuid' => \Str::uuid(),
+                'user_id' => auth()->id(),
+                'status' => 'selesai',
+                'amount' => $validated['amount'],
+                'type' => strtolower($validated['category']),
+                'description' => $validated['description'] ?? null,
+                'payment_method' => $validated['paymentMethod'] ?? null,
+                'transaction_at' => $request->input('date') ?? now(),
+                'additional_data' => $additionalData,
+                'warehouse_id' => $clientId,
+                "invoice_file" => $validated['invoice_file_path'],
+            ])->load('user');
+        }
+
         return response()->json($transaction, 201);
     }
 

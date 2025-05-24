@@ -17,13 +17,14 @@ class UserSeeder extends Seeder
             return; // User already exists, no need to create again
         }
         \App\Models\User::create([
-            'name' => 'Admin',
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('password'), // Use bcrypt to hash the password
+            'name' => 'Super Admin',
+            'email' => 'superadmin@gmail.com',
+            'password' => bcrypt('Password1234!'), // Use bcrypt to hash the password
             'email_verified_at' => now(), // Set email verification date to now
             'remember_token' => null, // Set remember token to null
             'created_at' => now(), // Set created at date to now
             'updated_at' => now(), // Set updated at date to now
+            'role' => \App\Enums\RoleEnum::SUPERADMIN->value, // Set role to ADMIN
         ]);
     }
 }
