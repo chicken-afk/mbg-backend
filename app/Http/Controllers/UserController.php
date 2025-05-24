@@ -38,7 +38,7 @@ class UserController extends Controller
             'password' => 'required|string|min:8',
             "role" => 'required|in:1,2',
             "status" => 'required|in:1,2',
-            "client_id" => 'nullable|exists:warehouses,id,deleted_at,NULL',
+            // "client_id" => 'nullable|exists:warehouses,id,deleted_at,NULL',
         ]);
 
         $clientId = auth()->user()->role === RoleEnum::SUPERADMIN->value ? $validated['client_id'] : auth()->user()->warehouse_id;
@@ -76,7 +76,7 @@ class UserController extends Controller
             'password' => 'sometimes|required|string|min:8|confirmed',
             "role" => 'sometimes|required|in:1,2,3',
             "status" => 'sometimes|required',
-            "client_id" => 'nullable|exists:warehouses,id,deleted_at,NULL',
+            // "client_id" => 'nullable|exists:warehouses,id,deleted_at,NULL',
         ]);
 
         if ($request->has('name')) {
@@ -95,7 +95,7 @@ class UserController extends Controller
         if ($request->has('status')) {
             $user->status = $validated['status'];
         }
-        if ($request->has('client_id')) {
+        if ($request->has('client_id') && $request->client_id != null) {
             $user->client_id = $validated['client_id'];
         }
 
