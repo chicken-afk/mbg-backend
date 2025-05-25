@@ -51,11 +51,11 @@ class FormFieldController extends Controller
             'options' => 'nullable|array',
             'required' => 'boolean',
             'show_in_table' => 'boolean',
-            "warehouse_id" => 'nullable|exists:warehouses,id,deleted_at,NULL',
+            "warehouse_id" => 'required|exists:warehouses,id,deleted_at,NULL',
             "label" => 'required|string|max:255',
         ]);
 
-        $clientId = auth()->user()->role === RoleEnum::SUPERADMIN->value ? $validatedData['warehouse_id'] : auth()->user()->warehouse_id;
+        $clientId = $validatedData['warehouse_id'];
 
         // Create a new form field
         $validatedData['options'] = $request->has('options') ? json_encode($validatedData['options']) : null;

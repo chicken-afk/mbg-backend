@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\RoleEnum;
 use App\Models\User;
+use App\Models\UserWarehouse;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -38,19 +39,23 @@ class UserController extends Controller
             'password' => 'required|string|min:8',
             "role" => 'required|in:1,2,3',
             "status" => 'required|in:1,2',
-            "client_id" => 'nullable|exists:warehouses,id,deleted_at,NULL',
+            "client_id" => 'required|array',
+            "client_id.*" => 'exists:warehouses,id,deleted_at,NULL',
         ]);
 
-        $clientId = auth()->user()->role === RoleEnum::SUPERADMIN->value ? $validated['client_id'] : auth()->user()->warehouse_id;
+        $clientId = $validated['client_id'];
 
         $user = \App\Models\User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             "role" => $validated['role'],
-            "status" => $validated['status'],
-            "warehouse_id" => $clientId,
+            "status" => $validated['status']
         ]);
+
+        foreach ($clientId as $id) {
+            $user->warehouses()->attach($id);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -73,10 +78,11 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-            'password' => 'sometimes|required|string|min:8|confirmed',
+            'password' => 'sometimes|required|string|min:8',
             "role" => 'sometimes|required|in:1,2,3',
             "status" => 'sometimes|required',
-            // "client_id" => 'nullable|exists:warehouses,id,deleted_at,NULL',
+            "client_id" => "required|array",
+            "client_id.*" => 'exists:warehouses,id,deleted_at,NULL',
         ]);
 
         if ($request->has('name')) {
@@ -95,9 +101,14 @@ class UserController extends Controller
         if ($request->has('status')) {
             $user->status = $validated['status'];
         }
-        if ($request->has('client_id') && $request->client_id != null) {
-            $user->client_id = $validated['client_id'];
+        // Detach all warehouses first
+        $user->warehouses()->detach();
+        foreach ($request->input('client_id', []) as $id) {
+            if (!$user->warehouses()->where('warehouse_id', $id)->exists()) {
+                $user->warehouses()->attach($id);
+            }
         }
+
 
         $user->save();
 

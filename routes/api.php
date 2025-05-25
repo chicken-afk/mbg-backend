@@ -49,4 +49,7 @@ Route::middleware('auth:api')->group(function () {
 
     /**Dynamic form */
     Route::get('/form-fields', [\App\Http\Controllers\FormFieldController::class, 'index']);
+
+    /**User Warehouses */
+    Route::get('/user-warehouses', [\App\Http\Controllers\UserWarehouseController::class, 'index']);
 });

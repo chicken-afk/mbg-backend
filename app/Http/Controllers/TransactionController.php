@@ -56,6 +56,7 @@ class TransactionController extends Controller
             'category' => 'required|in:Pemasukan,Pengeluaran',
             'description' => 'nullable|string',
             'paymentMethod' => 'required|string',
+            'warehouse_id' => 'required|exists:warehouses,id,deleted_at,NULL',
         ], [
             'amount.required' => 'Jumlah wajib diisi.',
             'amount.integer' => 'Jumlah harus berupa angka.',
@@ -69,7 +70,7 @@ class TransactionController extends Controller
         if ($request->has("customFields")) {
             $additionalData = json_encode($request->input("customFields"));
         }
-        $clientId = auth()->user()->role === 'superadmin' ? $request->input('warehouse_id') ?? null : auth()->user()->warehouse_id;
+        $clientId = $request->input('warehouse_id');
         $base64File = $request->has('invoiceFileBase64') ? $request->invoiceFileBase64  : null;
         $validated['invoice_file_path'] = null;
         if ($base64File) {
@@ -148,8 +149,9 @@ class TransactionController extends Controller
             'description' => 'nullable|string',
             'status' => 'string',
             'payment_method' => 'nullable|string',
+            "warehouse_id" => 'required|exists:warehouses,id,deleted_at,NULL',
         ]);
-
+        $validated['amount'] = $validated['amount'] < 0 ? $validated['amount'] * -1 : $validated['amount'];
         $transaction->update($validated);
         return response()->json($transaction);
     }

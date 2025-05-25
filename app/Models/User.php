@@ -68,4 +68,10 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
+
+    public function warehouses()
+    {
+        return $this->belongsToMany(Warehouse::class, 'user_warehouses', 'user_id', 'warehouse_id')
+            ->withTimestamps();
+    }
 }
