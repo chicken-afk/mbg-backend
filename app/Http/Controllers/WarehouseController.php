@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\RoleEnum;
 use App\Http\Requests\WarehouseRequest;
 use App\Models\User;
+use App\Models\UserWarehouse;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
@@ -16,19 +17,10 @@ class WarehouseController extends Controller
             'name' => $request->input('name'),
             'address' => $request->input('address'),
             'phone' => $request->input('phone'),
-            'email' => $request->input('email'),
             'contact_person' => $request->input('contact_person'),
             "status" => $request->input('status', true),
         ]);
 
-        $user = \App\Models\User::create([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'password' => bcrypt($request->input('password')),
-            "role" => RoleEnum::ADMIN->value,
-            "status" => (int) $request->input('status', true),
-            "warehouse_id" => $warehouse->id,
-        ]);
 
         return response()->json([
             'success' => true,
@@ -73,6 +65,13 @@ class WarehouseController extends Controller
                     ->orWhere("contact_person", "like", "%" . $request->input("search") . "%");
             });
         }
+
+        if (auth()->user()->role !== RoleEnum::SUPERADMIN->value) {
+            $userWarehouse = UserWarehouse::where("user_id", auth()->user()->id)
+                ->pluck("warehouse_id");
+            $warehouses->whereIn("id", $userWarehouse);
+        }
+
         if ($request->has("pagination") && $request->input("pagination") == "false") {
             $warehouses = $warehouses->get();
         } else {
@@ -102,7 +101,6 @@ class WarehouseController extends Controller
             'name' => $request->input('name'),
             'address' => $request->input('address'),
             'phone' => $request->input('phone'),
-            'email' => $request->input('email'),
             'contact_person' => $request->input('contact_person'),
             'status' => (int) $request->input('status', true),
         ]);

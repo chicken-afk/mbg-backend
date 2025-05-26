@@ -33,7 +33,7 @@ class TransactionController extends Controller
             $transactions->whereDate('transaction_at', $date);
         }
 
-        $clientId = auth()->user()->role === 'superadmin' ? $request->input('warehouse_id') ?? null : auth()->user()->warehouse_id;
+        $clientId = $request->input('warehouse_id', null);
         if ($clientId) {
             $transactions->where('warehouse_id', $clientId);
         }

@@ -74,4 +74,12 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(Warehouse::class, 'user_warehouses', 'user_id', 'warehouse_id')
             ->withTimestamps();
     }
+
+    //create scope to filter users by warehouse_id
+    public function scopeWithWarehouseId($query, $warehouseId)
+    {
+        return $query->whereHas('warehouses', function ($q) use ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
+        });
+    }
 }

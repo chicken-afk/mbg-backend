@@ -31,7 +31,7 @@ class FormFieldController extends Controller
             $formFields = $formFields->where('status', $request->input('status'));
         }
 
-        $clientId = auth()->user()->role === RoleEnum::SUPERADMIN->value ? $request->input('warehouse_id') : auth()->user()->warehouse_id;
+        $clientId = $request->input('warehouse_id');
 
         if ($clientId) {
             $formFields = $formFields->where('warehouse_id', $clientId);
@@ -72,7 +72,7 @@ class FormFieldController extends Controller
             $formField = FormField::create($validatedData);
         }
 
-        return response()->json($formField, 201);
+        return response()->json(null, 201);
     }
 
     public function update(Request $request, $id)

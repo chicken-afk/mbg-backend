@@ -40,9 +40,10 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 # Expose port for Octane
 EXPOSE 8000
-
 CMD ["php", "artisan", "config:clear"]
 CMD ["php", "artisan", "config:cache"]
+CMD ["php", "artisan", "migrate"]
+CMD ["php", "artisan", "db:seed"]
 
 # Start Octane with Swoole
 CMD ["sh", "-c", "php artisan config:clear && php artisan config:cache && php artisan octane:start --server=swoole --host=0.0.0.0 --port=8000"]

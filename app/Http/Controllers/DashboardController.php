@@ -9,7 +9,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $warehouseId = auth()->user()->role === 'superadmin' ? $request->input('warehouse_id') : auth()->user()->warehouse_id;
+        $warehouseId = $request->input('warehouse_id');
 
         $totalIncomeQuery = Transaction::where('type', 'pemasukan');
         $totalExpenseQuery = Transaction::where('type', 'pengeluaran');

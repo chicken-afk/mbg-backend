@@ -11,7 +11,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $users = User::with('Client:id,name')
+        $users = User::with('warehouses:id,name')
             ->where('role', '!=', 0);
         if ($search = $request->input('search')) {
             $search = strtolower($search);
@@ -21,7 +21,7 @@ class UserController extends Controller
             });
         }
         if (auth()->user()->role !== RoleEnum::SUPERADMIN->value) {
-            $users->where('warehouse_id', auth()->user()->warehouse_id);
+            $users->withWarehouseId($request->input('warehouse_id', auth()->user()->warehouses->pluck('id')->toArray()));
         }
         $users = $users->orderBy('created_at', 'desc')->paginate(10);
         return response()->json([
@@ -78,7 +78,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-            'password' => 'sometimes|required|string|min:8',
+            'password' => 'nullable|string|min:8',
             "role" => 'sometimes|required|in:1,2,3',
             "status" => 'sometimes|required',
             "client_id" => "required|array",
@@ -91,7 +91,8 @@ class UserController extends Controller
         if ($request->has('email')) {
             $user->email = $validated['email'];
         }
-        if ($request->has('password')) {
+        if ($request->has('password') && $request->input('password') !== null) {
+            // Only update password if it is provided
             $user->password = bcrypt($validated['password']);
         }
 
