@@ -12,7 +12,8 @@
     <p style="margin-bottom: 3px;margin-top:0px;">Periode: {{ $start_date }} s/d {{ $end_date }}</p>
     <p style="margin-bottom: 3px;margin-top:0px;">Jumlah Transaksi: {{ $transactions->count() }}</p>
     <p style="margin-bottom: 3px;margin-top:0px;">Saldo: Rp.
-        {{ number_format($transactions->sum('amount'), 0) }}</p>
+        {{ number_format($transactions->where('type', 'pemasukan')->sum('amount') - $transactions->where('type', 'pengeluaran')->sum('amount'), 0) }}
+    </p>
     <p style="margin-bottom: 3px;margin-top:0px;">Jumlah Transaksi Masuk: Rp.
         {{ number_format($transactions->where('type', 'pemasukan')->sum('amount'), 0) }}</p>
     <p style="margin-bottom: 3px;margin-top:0px;">Jumlah Transaksi Keluar: Rp.
@@ -78,13 +79,13 @@
                 <tr>
                     {{-- <td>{{ $transaction->uuid }}</td> --}}
                     <td>
-                        {{ $transaction->created_at !== null ? $transaction->created_at->format('H:i d-m-Y') : '-' }}
+                        {{ $transaction->created_at !== null ? $transaction->created_at->format('H:i d-M-Y') : '-' }}
                     </td>
                     <td>{{ $transaction->user->name }}</td>
                     <td>Rp. {{ number_format($transaction->amount, 0) }}</td>
                     <td>{{ $transaction->type }}</td>
                     <td>
-                        {{ $transaction->transaction_at !== null ? $transaction->transaction_at->format('d-m-Y') : '-' }}
+                        {{ $transaction->transaction_at !== null ? $transaction->transaction_at->format('d-M-Y') : '-' }}
                     </td>
                     <td>
                         {{ $transaction->description !== null ? $transaction->description : '-' }}

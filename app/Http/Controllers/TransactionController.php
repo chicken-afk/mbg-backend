@@ -38,7 +38,7 @@ class TransactionController extends Controller
             $transactions->where('warehouse_id', $clientId);
         }
 
-        $transactions = $transactions->orderBy('created_at', 'desc')->paginate(10);
+        $transactions = $transactions->orderBy('transaction_at', 'desc')->paginate(10);
         // $resData = $transactions->get();
         $output = [
             'status' => 'success',
@@ -175,7 +175,7 @@ class TransactionController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Transaction::with('user');
+        $query = Transaction::with('user')->orderBy('transactions.transaction_at', 'desc');
         if ($request->has('start_date') && $request->start_date !== null && $request->start_date !== 'null') {
             $query->whereDate('transaction_at', '>=', $request->input('start_date'));
         }
@@ -186,6 +186,10 @@ class TransactionController extends Controller
         if ($request->has('type') && $request->input('type') !== 'all') {
             $query->where('type', $request->input('type'));
         }
+        if ($request->has('warehouse_id') && $request->input('warehouse_id') !== null && $request->input('warehouse_id') !== 'null') {
+            $query->where('warehouse_id', $request->input('warehouse_id'));
+        }
+
         $transactions = $query->orderBy('transactions.id', "desc")->get();
         $start_date = ($request->has('start_date') && $request->start_date !== null && $request->start_date !== 'null') ? date('d-m-Y', strtotime($request->input('start_date'))) : null;
         $end_date = ($request->has('end_date') && $request->end_date !== null && $request->end_date !== 'null') ? date('d-m-Y', strtotime($request->input('end_date'))) : null;
@@ -199,6 +203,7 @@ class TransactionController extends Controller
             ->when($request->has('end_date') && $request->end_date !== null && $request->end_date !== 'null', function ($query) use ($request) {
                 $query->whereDate('transaction_at', '<=', $request->input('end_date'));
             })
+            ->where('transactions.warehouse_id', $request->input('warehouse_id', null))
             ->selectRaw('transactions.user_id, users.name, SUM(transactions.amount) as total_spent')
             ->groupBy('transactions.user_id', 'users.name')
             ->orderBy('total_spent', 'asc')
@@ -212,6 +217,7 @@ class TransactionController extends Controller
             ->when($request->has('end_date') && $request->end_date !== null && $request->end_date !== 'null', function ($query) use ($request) {
                 $query->whereDate('transaction_at', '<=', $request->input('end_date'));
             })
+            ->where('transactions.warehouse_id', $request->input('warehouse_id', null))
             ->selectRaw('transactions.user_id, users.name, SUM(transactions.amount) as total_income')
             ->groupBy('transactions.user_id', 'users.name')
             ->orderBy('total_income', 'desc')

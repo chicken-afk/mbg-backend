@@ -37,14 +37,14 @@ class DashboardController extends Controller
 
         $totalIncome = $totalIncomeQuery->sum('amount');
         $totalExpense = $totalExpenseQuery->sum('amount');
-        $saldo = $totalIncome + $totalExpense;
+        $saldo = (int) $totalIncome - (int) $totalExpense;
         $totalSpent = $totalSpentQuery->get();
         $totalIncomeByUser = $totalIncomeByUserQuery->get();
         $recentTransactions = $recentTransactionsQuery->get();
 
         $dashboardData = [
-            'total_income' => $totalIncome,
-            'total_expense' => $totalExpense,
+            'total_income' => (int) $totalIncome,
+            'total_expense' => (int) $totalExpense,
             'saldo' => $saldo,
             'total_spent_by_user' => $totalSpent,
             'total_income_by_user' => $totalIncomeByUser,
