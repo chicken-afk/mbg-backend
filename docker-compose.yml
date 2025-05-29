@@ -10,6 +10,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/var/www
-      - ./.env:/var/www/.env # mount file .env ke dalam container
+      - ./.env:/var/www/.env
     env_file:
-      - .env # ini otomatis inject semua variabel dari .env
+      - .env
+    restart: unless-stopped
